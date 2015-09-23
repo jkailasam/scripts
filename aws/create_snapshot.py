@@ -22,5 +22,3 @@ if __name__ == '__main__':
     # Create Snapshot
     ImageId = create_snapshot(conn, args.instance, args.name)
     print ImageId
-
-
