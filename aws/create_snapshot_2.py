@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import boto.ec2
 import argparse
+import time
 #import boto.utils
 
 
@@ -15,6 +16,9 @@ def parsed_args():
 	parser.add_argument('-n', '--name',required=True)
 	#parser.add_argument('-d', '--device',)
 	return parser.parse_args()
+
+def get_image_status():
+	image = conn.get_all_images(image_ids=[ImageID])[0]
 
 def main():
 	args = parsed_args()
