@@ -1,8 +1,8 @@
-#!/bin/bash 
+#!/bin/bash
 # this script creates volume from AMI and attach it to an existing Instnace
 
-if [[ $# -ne 2 ]] ; then 
-   echo "Usage: $(basename $0) [Image-id] [instanceid]"
+if [[ $# -ne 3 ]] ; then
+   echo "Usage: $(basename $0) [Image-id] [instanceid] [availability-zone]"
    exit
 fi
 
@@ -10,14 +10,13 @@ ImgId=$1
 InstanceId=$2
 TmpFile=/tmp/snapfile
 
-
-REGION=us-west-2
-AZ=us-west-2c
+AZ=$3
+REGION="${AZ%?}"
 type=gp2
 
 aws ec2 describe-images --region us-west-2 --image-ids $ImgId | jq -r '.Images[].BlockDeviceMappings[]|.DeviceName+","+.Ebs.SnapshotId' > $TmpFile
 
-for i in $(cat $TmpFile|grep -v da1); do 
+for i in $(cat $TmpFile|grep -v da1); do
    DevId=$(echo $i | awk -F, '{print $1}')
    SnapId=$(echo $i | awk -F, '{print $2}')
    VolId=$(aws ec2 create-volume --region $REGION --availability-zone $AZ --snapshot $SnapId --volume-type $type  | jq -r .VolumeId) \
