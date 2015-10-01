@@ -38,24 +38,10 @@ def main():
 	if status == 'available':
 		print "success: Image creation completed"
 
-#	# ImageId = create_snapshot(conn, args.instance, args.name)
-#	images = conn.get_all_images()
-#	image = images[0]
-#	#image = conn.get_all_images(image_ids=[ImageId])[0]
-#	while image.state == 'pending':
-#		time.sleep(10)
-#		image.update()
-#	if image.state == 'available':
-#		print "Image is ready and available"
-#		print (time.strftime("%H:%M:%S"))
-#	else:
-#		print "Something Wrong... Please check"
-
-
-
 
 if __name__ == '__main__':
 	main()
+
 
 '''
     # Create Snapshot
