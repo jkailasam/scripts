@@ -4,10 +4,11 @@ import argparse
 import time
 #import boto.utils
 
-def create_ami(conn, instance_id, name):
-	response = conn.create_image(instance_id,name,no_reboot=True)
-	print "Image {image} creation started".format(image=response.id)
-	return response.id
+
+def create_ami(conn,instance_id, name):
+	ImageId = conn.create_image(instance_id,name,no_reboot=True)
+	print "Image creation for instance {0} started. Image Id: {1}".format(instance_id,ImageId)
+	return ImageId
 
 def parsed_args():
 	parser = argparse.ArgumentParser(description='Create and and copy AMI Image.')
@@ -17,8 +18,8 @@ def parsed_args():
 	#parser.add_argument('-d', '--device',)
 	return parser.parse_args()
 
-def get_image_status(conn, ImageId):
-	image = conn.get_all_images(image_ids=[ImageId])[0]
+def get_image_status(conn,ImageId):
+	image = conn.get_all_images([ImageId])[0]
 	return image.state
 
 def main():
@@ -28,12 +29,16 @@ def main():
 	print args.name
 	#print args.device
 	conn = boto.ec2.connect_to_region(args.region)
-	Image_id = create_snapshot(conn, args.instance, args.name)
-	print Image_id
+	image_id = create_ami(conn,args.instance, args.name)
+	status = get_image_status(conn,image_id)
+	print status
+	while status == 'pending':
+		time.sleep(5)
+		status = get_image_status(conn,image_id)
+	if status == 'available':
+		print "success: Image creation completed"
 
-
-
-#	#ImageId = create_snapshot(conn, args.instance, args.name)
+#	# ImageId = create_snapshot(conn, args.instance, args.name)
 #	images = conn.get_all_images()
 #	image = images[0]
 #	#image = conn.get_all_images(image_ids=[ImageId])[0]
