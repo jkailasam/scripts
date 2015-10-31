@@ -16,9 +16,9 @@ import boto.sns
 region = 'us-west-2'
 tag_name = 'tag:MakeSnapshot'
 tag_value = 'True'
-keep_day = 6
-keep_week = 4
-Keep_month = 2
+keep_daily = 6
+keep_weekly = 4
+Keep_monthly = 2
 log_file = '/tmp/makesnapshots.log'
 policy = 'daily'
 
@@ -40,6 +40,12 @@ def create_description(resource_id):
     'policy' : policy, 'vol_id' : vol.id, 'date' : datetime.today().strftime('%d-%m-%Y at %H:%M:%S')
     }
     return desc
+
+def create_delete_list(snap,period):
+    snapdesc = snap.description
+    if (snapdesc.startswith(period) and period == period):
+        deletelist.append(snap)
+    return deletelist
 
 
 
