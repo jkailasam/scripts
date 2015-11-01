@@ -19,7 +19,7 @@ tag_value = 'True'
 keep_daily = 6
 keep_weekly = 4
 Keep_monthly = 2
-policy = 'monthly'
+policy = 'weekly'
 
 ## Set number of snaps to keep
 if policy == 'daily':
@@ -78,7 +78,7 @@ conn = boto.ec2.connect_to_region(region)
 sns = boto.sns.connect_to_region(region)
 
 # vols = conn.get_all_volumes(filters={ 'tag:' + config['tag_name']: config['tag_value'] })
-vols = conn.get_all_volumes(filters={ 'tag:Snapshot': 'True' })
+vols = conn.get_all_volumes(filters={ 'tag:MakeSnapshot': 'True' })
 
 ## Create a new snapshot
 for vol in vols:
