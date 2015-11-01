@@ -41,9 +41,9 @@ def create_description(resource_id):
     }
     return desc
 
-def create_delete_list(snap,period):
+def create_delete_list(snap,policy):
     snapdesc = snap.description
-    if (snapdesc.startswith(period) and period == period):
+    if (snapdesc.startswith(policy) and policy == policy):
         deletelist.append(snap)
     return deletelist
 
@@ -63,3 +63,36 @@ for vol in vols:
     print '%(snap_id)s created for %(volume)s' %{
     'snap_id' : current_snap, 'volume' : vol
     }
+
+
+if policy == 'daily':
+    snap_to_keep = 6
+elif policy == weekly:
+    snap_to_keep = 4
+elif policy == monthly:
+    snap_to_keep = 2
+
+
+
+/// to delete the old snapshots
+
+01. Get the delete list
+def create_delete_list(snap,policy):
+    snapdesc = snap.description
+    if (snapdesc.startswith(policy) and policy == policy):
+        deletelist[snap] = snap.start_time
+    return deletelist
+
+for snap in snaps:
+    create_delete_list(snap,policy)
+
+02. Sort it by value
+    sorted_by_date = sorted(deletelist.values())
+
+03. Find out the oldest snap
+    for snap, start_time in deletelist.items():
+        if start_time == sorted_by_date[0]:
+            snap_to_delete = snap
+    return snap_to_delete
+
+///
