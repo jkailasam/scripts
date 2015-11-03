@@ -2,7 +2,7 @@
 __author__ = "Jeeva Kailasam"
 __version__ = "1.0"
 __email__ = "jkailasam@netflix.com"
-__status__ = "Development"
+__status__ = "Beta"
 
 ### Import modules
 import sys
@@ -16,10 +16,21 @@ import boto.sns
 region = 'us-west-2'
 tag_name = 'tag:MakeSnapshot'
 tag_value = 'True'
+Daily=['Mon','Tue','Wed','Thu','Fri']
+Weekly = 'Sun'
 keep_daily = 6
 keep_weekly = 4
 Keep_monthly = 2
-policy = 'weekly'
+
+
+#### Do not modify anything bellow this point####
+## Set the policy
+today=datetime.today().strftime('%a-%Y-%m-%d-%H:%M').split('-')
+if today[0] in Daily:
+    policy = 'daily'
+elif today[0] in Weekly:
+    policy = 'weekly'
+
 
 ## Set number of snaps to keep
 if policy == 'daily':
@@ -49,8 +60,8 @@ def create_description(resource_id):
 def create_snapshot():
     description = create_description(vol)
     current_snap = vol.create_snapshot(description)
-    print '%(snap_id)s created for %(volume)s' %{
-    'snap_id' : current_snap, 'volume' : vol }
+    print '%(policy)s %(snap_id)s created for %(volume)s' %{
+    'policy': policy, 'snap_id' : current_snap, 'volume' : vol }
 
 def delete_snapshots():
     snaps = vol.snapshots()
@@ -88,6 +99,20 @@ for vol in vols:
 
 
 '''
+Daily=['Mon','Tue','Wed','Thu','Fri']
+Weekly = 'Sun'
+today=datetime.today().strftime('%a-%Y-%m-%d-%H:%M').split('-')
+if today[0] in Daily:
+    policy = 'daily'
+elif today[0] in Weekly:
+    policy = 'weekly'
+
+
+
+
+
+
+
 
 def create_delete_list(snap,policy):
     snapdesc = snap.description
