@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash 
 # this script  deletes the  AMI and corresponding disk images
 
 if [[ $# -ne 2 ]] ; then
@@ -13,11 +13,11 @@ TmpFile=/tmp/snapfile
 aws ec2 describe-images --region $Region --image-ids $ImgId | jq -r '.Images[].BlockDeviceMappings[].Ebs.SnapshotId' > $TmpFile
 
 ## de-register Image
-aws ec2 deregister-image --image-id $ImgId
+aws ec2 deregister-image --image-id $ImgId --region $Region
 
 sleep 10
 for i in $(cat $TmpFile|egrep -v null); do
-	aws ec2 delete-snapshot --region $Region --snapshot-id $i
+	aws ec2 delete-snapshot --region $Region --snapshot-id $i && echo "snapshot $i deleted"
 done
 
  
