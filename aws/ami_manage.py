@@ -60,15 +60,6 @@ def create_aminame(resource_id):
     return name
 
 
-
-
-def create_snapshot():
-    description = create_description()
-    current_ami = instance.create_snapshot(description)
-    print '%(policy)s %(snap_id)s created for %(volume)s' %{
-    'policy': policy, 'snap_id' : current_snap, 'volume' : vol }
-
-
 def create_ami(instance_id, image_name):
     description = create_description()
     crtime=datetime.today().strftime('%y-%m-%d_%H:%M')
