@@ -18,10 +18,9 @@ tag_name = 'tag:CreateAMI'
 tag_value = 'True'
 Daily=['Mon','Tue','Wed','Thu','Fri']
 Weekly = 'Sun'
-keep_daily = 6
+keep_daily = 8
 keep_weekly = 4
 Keep_monthly = 2
-
 
 #### Do not modify anything bellow this point####
 ## Set the policy
@@ -31,24 +30,23 @@ if today[0] in Daily:
 elif today[0] in Weekly:
     policy = 'weekly'
 
-
 ## Set number of snaps to keep
 if policy == 'daily':
-    snap_to_keep = keep_daily
+    ami_to_keep = keep_daily
 elif policy == 'weekly':
-    snap_to_keep = keep_weekly
+    ami_to_keep = keep_weekly
 elif policy == 'monthly':
-    snap_to_keep = Keep_monthly
+    ami_to_keep = Keep_monthly
 
 ### Define Functions
-def create_description():
-    desc = '%(policy)s_snapshot for %(instance_id)s taken on %(date)s' %{
-    'policy' : policy, 'instance_id' : instance.id, 'date' : datetime.today().strftime('%d-%m-%Y at %H:%M:%S')
+def create_description(instance_id):
+    desc = '%(policy)s_AMI for %(instance_id)s taken on %(date)s' %{
+    'policy' : policy, 'instance_id' : instance_id, 'date' : datetime.today().strftime('%d-%m-%Y at %H:%M:%S')
     }
     return desc
 
 def create_aminame(resource_id):
-    crtime=datetime.today().strftime('%y-%m-%d_%H:%M')
+    crtime=datetime.today().strftime('%y-%m-%d_%H-%M')
     tags = conn.get_all_tags({'resource_id':resource_id})
     for tag in tags:
         if tag.name == 'Name':
@@ -60,93 +58,47 @@ def create_aminame(resource_id):
     return name
 
 
-def create_ami(instance_id, image_name):
-    description = create_description()
-    crtime=datetime.today().strftime('%y-%m-%d_%H:%M')
+def create_ami(instance_id):
+    description = create_description(instance_id)
+    ami_name = create_aminame(instance_id)
+    ImageId = conn.create_image(instance_id,ami_name,description=description,no_reboot=True)
+    print "Image creation for instance {0} started. AMI Id: {1}".format(instance_id,ImageId)
+    AMI=conn.get_all_images([ImageId])[0]
+    AMI.add_tag('Name',ami_name)
+    AMI.add_tag('InstanceID', instance_id)
+    return AMI
 
-    ImageId = conn.create_image(instance_id,image_name,description=description,no_reboot=True)
-    print "Image creation for instance {0} started. Image Id: {1}".format(instance_id,ImageId)
-    return ImageId
 
-
-
-
-def delete_snapshots():
-    snaps = vol.snapshots()
+def delete_ami(instance_id):
+    images = conn.get_all_images(filters={'tag:InstanceID' :instance_id})
     deletelist = {}
-    for snap in snaps:
-        snapdesc = snap.description
-        if (snapdesc.startswith(policy) and policy == policy):
-            deletelist[snap] = snap.start_time
+    for ami in images:
+        amidesc = ami.description
+        if (amidesc.startswith(policy) and policy == policy):
+            deletelist[ami] = ami.creationDate
     sorted_by_date = sorted(deletelist.values())
     count = len(deletelist)
-    if count > snap_to_keep :
-        delta = count - snap_to_keep
+    if count > ami_to_keep :
+        delta = count - ami_to_keep
         for i in range(0,delta):
-            for snap, start_time in deletelist.items():
-                if start_time == sorted_by_date[i]:
+            for ami, creationDate in deletelist.items():
+                ami_id=ami.id
+                if creationDate == sorted_by_date[i]:
                     try:
-                        print "now deleting %(policy)s %(snap)s" %{'policy': policy, 'snap' : snap}
-                        response = snap.delete()
-                        print '%(policy)s %(snap)s deleted successully' %{'policy': policy, 'snap' : snap}
+                        print "now deleting %(ami)s" %{'ami' : ami}
+                        response = conn.deregister_image(ami_id, delete_snapshot=True)
+                        print '%(ami)s deleted successully' %{'ami' : ami}
                     except:
-                        print "Error deleing %(snap)s" %{'snap' : snap}
+                        print "Error deleing %(ami)s" %{'ami' : ami}
+                        print response
 
 ## Define AWS EC2 and SNS Connections
 conn = boto.ec2.connect_to_region(region)
 sns = boto.sns.connect_to_region(region)
-instances=conn.get_only_instances(filters={ 'tag:CreateAMI': 'True' })
+instances=conn.get_only_instances(filters={ tag_name: tag_value })
 
 ## Create a new snapshot
 for instance in instances:
-    create_ami()
-    delete_ami()
-
-
-'''
-tags = conn.get_all_tags({'resource_id':instance_id})
-for tag in tags:
-    if tag.name == 'Name':
-        name = tag.value
-    else:
-        name = ''
-
-
-
-
-def get_resource_tags(resource_id):
-    resource_tags = {}
-    if resource_id:
-        tags = conn.get_all_tags({'resource_id': resource_id})
-        for tag in tags:
-            if not tag.name.startswith('aws'):
-                resource_tags[tag.name] = tag.value
-    return resource_tags
-
-
-def create_delete_list(snap,policy):
-    snapdesc = snap.description
-    if (snapdesc.startswith(policy) and policy == policy):
-        deletelist[snap] = snap.start_time
-    return deletelist
-
-
-for vol in vols:
-    snaps = vol.snapshots()
-    deletelist = {}
-    for snap in snaps:
-        deletelist = create_delete_list(snap,policy)
-        sorted_by_date = sorted(deletelist.values())
-    count = len(deletelist)
-    if count > snap_to_keep :
-        delta = count - snap_to_keep
-        for i in range(0,delta):
-            for snap, start_time in deletelist.items():
-                if start_time == sorted_by_date[i]:
-                    try:
-                        print "now deleting %(snap)s" %{'snap' : snap}
-                        response = snap.delete()
-                        print '%(snap)s deleted successully' %{'snap' : snap}
-                    except:
-                        print "Error deleing %(snap)s" %{'snap' : snap}
-'''
+    instance_id = instance.id
+    create_ami(instance_id)
+    delete_ami(instance_id)

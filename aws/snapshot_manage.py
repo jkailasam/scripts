@@ -77,7 +77,7 @@ def delete_snapshots():
 ## Define AWS EC2 and SNS Connections
 conn = boto.ec2.connect_to_region(region)
 sns = boto.sns.connect_to_region(region)
-vols = conn.get_all_volumes(filters={ 'tag:MakeSnapshot': 'True' })
+vols = conn.get_all_volumes(filters={ tag_name: tag_value })
 
 ## Create a new snapshot
 for vol in vols:
