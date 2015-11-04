@@ -47,11 +47,27 @@ def create_description():
     }
     return desc
 
+def create_aminame(resource_id):
+    crtime=datetime.today().strftime('%y-%m-%d_%H:%M')
+    tags = conn.get_all_tags({'resource_id':resource_id})
+    for tag in tags:
+        if tag.name == 'Name':
+            inst_name = tag.value
+        else:
+            inst_ame = ''
+    name = '%(policy)s_%(instance_id)s_%(crtime)s_%(inst_name)s' %{
+    'policy' : policy,'instance_id' :resource_id,'crtime': crtime, 'inst_name': inst_name}
+    return name
+
+
+
+
 def create_snapshot():
     description = create_description()
     current_ami = instance.create_snapshot(description)
     print '%(policy)s %(snap_id)s created for %(volume)s' %{
     'policy': policy, 'snap_id' : current_snap, 'volume' : vol }
+
 
 def create_ami(instance_id, image_name):
     description = create_description()
@@ -97,6 +113,16 @@ for instance in instances:
 
 
 '''
+tags = conn.get_all_tags({'resource_id':instance_id})
+for tag in tags:
+    if tag.name == 'Name':
+        name = tag.value
+    else:
+        name = ''
+
+
+
+
 def get_resource_tags(resource_id):
     resource_tags = {}
     if resource_id:
