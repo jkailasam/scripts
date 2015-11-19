@@ -22,9 +22,9 @@ for InstanceStatus in InstanceStatuses:
         Event_Code = Event['Code']
         Event_Descrition = Event['Description']
         Event_Time = Event['NotBefore'].strftime('%a %Y-%m-%d %H:%M UTC')
-        print "Instance {0} is Scheduled to {1}.".format(instance_id,Event_Code)
-        print "Reason: {0}".format(Event_Descrition)
-        print "Scheduled Time: {0}".format(Event_Time)
+        print ("Instance {0} is Scheduled to {1}".format(instance_id,Event_Code))
+        print ("Reason: {0}".format(Event_Descrition))
+        print ("Scheduled Time: {0}".format(Event_Time))
 
 
 
