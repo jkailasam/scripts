@@ -4,7 +4,7 @@ __version__ = "1.01"
 __email__ = "jkailasam@netflix.com"
 __status__ = "Beta"
 
-### Import modules
+#Import modules
 import sys
 from datetime import datetime
 import argparse
@@ -22,8 +22,8 @@ keep_daily = 6
 keep_weekly = 4
 keep_monthly = 2
 
-#### Do not modify anything bellow this point####
-## Set the policy
+# Do not modify anything bellow this point####
+# Set the policy
 today=datetime.today().strftime('%a-%Y-%m-%d-%H:%M').split('-')
 
 if today[3] == '01':
@@ -117,17 +117,17 @@ def lambda_handler(event, context):
         conn = boto.ec2.connect_to_region(region)
         sns = boto.sns.connect_to_region(region)
         instances=conn.get_only_instances(filters={ tag_name: tag_value })
-        print ("===================================")
         print ("Now processing {0} region......".format(region))
 
         ## Create a new snapshot
         for instance in instances:
             instance_id = instance.id
-            # create_ami(conn,instance_id)
+            #create_ami(conn,instance_id)
             #time.sleep(10)
             delete_ami(conn, instance_id)
-        print ("===================================")
-        print "\n\n\ncompleted processing all instances in {0}... \n\n".format(region)
+        print ("*************************************************")
+        print "completed processing all instances in {0}".format(region)
+        print ("*************************************************\n\n")
     return
 
 if __name__ == '__main__':
