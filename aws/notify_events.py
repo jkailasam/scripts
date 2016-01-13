@@ -13,7 +13,8 @@ client=boto3.client('ec2',region)
 
 filters = [{'Values': ['instance-stop', 'instance-reboot', 'system-reboot', 'system-maintenance', 'instance-retirement'], 'Name': 'event.code'}]
 
-InstanceStatuses = client.describe_instance_status(Filters=filters)['InstanceStatuses']
+#InstanceStatuses = client.describe_instance_status(Filters=filters)['InstanceStatuses']
+InstanceStatuses = ec2.meta.client.describe_instance_status(Filters=filters)['InstanceStatuses']
 
 for InstanceStatus in InstanceStatuses:
     instance_id = InstanceStatus['InstanceId']
