@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/aws.iml" filepath="$PROJECT_DIR$/.idea/aws.iml" />
       <module fileurl="file:///tmp/scratch/.idea/scratch.iml" filepath="/tmp/scratch/.idea/scratch.iml" />
+      <module fileurl="file://$USER_HOME$/stash/.idea/stash.iml" filepath="$USER_HOME$/stash/.idea/stash.iml" />
     </modules>
   </component>
 </project>
