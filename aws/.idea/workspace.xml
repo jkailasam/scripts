@@ -2,10 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e5d2fa27-d203-49f5-a3d8-16a19cfa0743" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/dgrep.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/aws.iml" afterPath="$PROJECT_DIR$/.idea/aws.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/modules.xml" afterPath="$PROJECT_DIR$/.idea/modules.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/notify_events.py" afterPath="$PROJECT_DIR$/notify_events.py" />
     </list>
     <ignored path="aws.iws" />
@@ -40,10 +36,10 @@
       <file leaf-file-name="notify_events.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/notify_events.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.5205047">
-              <caret line="57" column="13" selection-start-line="57" selection-start-column="13" selection-end-line="57" selection-end-column="13" />
+            <state vertical-scroll-proportion="0.9884679">
+              <caret line="40" column="4" selection-start-line="40" selection-start-column="4" selection-end-line="40" selection-end-column="4" />
               <folding>
-                <element signature="e#30#45#0" expanded="true" />
+                <element signature="e#30#59#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -682,10 +678,10 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/notify_events.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.5205047">
-          <caret line="57" column="13" selection-start-line="57" selection-start-column="13" selection-end-line="57" selection-end-column="13" />
+        <state vertical-scroll-proportion="0.9884679">
+          <caret line="40" column="4" selection-start-line="40" selection-start-column="4" selection-end-line="40" selection-end-column="4" />
           <folding>
-            <element signature="e#30#45#0" expanded="true" />
+            <element signature="e#30#59#0" expanded="true" />
           </folding>
         </state>
       </provider>

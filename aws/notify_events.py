@@ -1,18 +1,20 @@
 __author__ = 'Jeeva Kailasam'
-import datetime
+from datetime import datetime
+from datetime import date
 import boto3
-from boto3.dynamodb.conditions import Key, Attr
 from boto3.session import Session
+from boto3.dynamodb.conditions import Key, Attr
 import sys
-import pprint
 import json
+import smtplib
 
 regions = ['us-west-1', 'us-west-2', 'us-east-1']
-#region = 'us-west-2'
 table_name = 'Event-Notify'
+
 dynamodb=boto3.resource('dynamodb','us-west-2')
 ddbclient = boto3.client('dynamodb','us-west-2')
 table = dynamodb.Table(table_name)
+current_events = table.scan()['Items']
 
 legacy = Session(profile_name='legacy')
 dev = Session(profile_name='dev')
@@ -22,20 +24,28 @@ account = 'prod'
 filters = [{'Values': ['instance-stop', 'instance-reboot', 'system-reboot', 'system-maintenance', 'instance-retirement'], 'Name': 'event.code'}]
 
 def find_existing_events():
-    current_events = table.scan()['Items']
     events = {}
     for current_event in current_events:
         events[current_event['InstanceId']] = current_event['EventTime']
     return events
 
-def sendEmail(dictEvent):
-    msg = MIMEText(json.dumps(dictEvent, sort_keys=True, indent=4, separators=(',', ': ')))
-    msg['Subject'] = 'AWS Maintenance for %s' % dictEvent['Instance ID']
-    msg['From'] = 'itcloudeng@netflix.com'
-    msg['To'] = 'itcloudeng@netflix.com'
-    s = smtplib.SMTP('mailrelay.itp.netflix.net')
-    s.sendmail(msg['From'], msg['To'], msg.as_string())
-    s.quit()
+def cleanup_dynamodb():
+    today = datetime.today()
+    print('Cleaning up the old Dynamo DB Entries....')
+    for current_event in current_events:
+        event_date = datetime.strptime(current_event['EventTime'],"%Y-%m-%d")
+        diff = (today - event_date).days
+        if diff > 30:
+            print('deleting')
+            table.delete_item(Key={'InstanceId': current_event['InstanceId']})
+    print('Done..\n')
+
+def sendEmail(message):
+    mailfrom = 'jeeva@netflix.com'
+    mailto = 'jkailasam@netflix.com'
+    smtpserver = smtplib.SMTP('mailrelay.itp.netflix.net')
+    smtpserver.sendmail(mailfrom,mailto, message)
+    smtpserver.quit()
 
 
 def addtoddb(Instance_Id,account,Event_Code,Event_Description,Event_Time,app,Owner,email):
@@ -83,33 +93,21 @@ def check_events(aws,region):
             if (existing_events.has_key(Instance_Id) and existing_events[Instance_Id] == Event_Time):
                 print("This event is already recorded... Skipping.... \n".format(Instance_Id))
             else:
-                #print('Instance ID: {}'.format(Instance_Id))
-                #print('Event Code: {}'.format(Event_Code))
-                #print('Event Reason: {0}'.format(Event_Description))
-                #print('Scheduled Date: {}'.format(Event_Time))
-                #print('Account: {0} \nRegion: {1}\n\n'.format(account,region))
                 print('Record not found.. adding')
                 table_item  = addtoddb(Instance_Id,account,Event_Code,Event_Description,Event_Time,TAGS['app'],TAGS['Owner'],TAGS['email'])
                 #pprint.pprint(table_item, width = 1)
-                print(json.dumps(table_item, sort_keys=True, indent=5, separators=(',', ':')))
-                print('\n\n')
-
+                #print(json.dumps(table_item, sort_keys=True, indent=5, separators=(',', ':')))
+                #print('Subject: EC2 Instance Maintenace \n\n{}'.format(json.dumps(table_item, sort_keys=True, indent=5, separators=(',', ':'))))
+                sendEmail('Subject: EC2 Instance Maintenace notice \n\n{}'.format(json.dumps(table_item, sort_keys=True, indent=5, separators=(',', ':'))))
+                print('\n')
 
 
 if __name__ == '__main__':
+    cleanup_dynamodb()
     for account in 'prod','dev','legacy':
         aws = Session(profile_name=account)
         for region in regions:
             check_events(aws,region)
-
-
-
-
-
-
-
-
-
 
 
 ### work on it further###
