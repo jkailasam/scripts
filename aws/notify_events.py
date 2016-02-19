@@ -23,7 +23,7 @@ filters = [{'Values': ['instance-stop', 'instance-reboot', 'system-reboot', 'sys
 
 def addtoddb(Instance_Id,account,Event_Code,Event_Description,Event_Time,app,Owner,email):
     table.put_item(Item={'InstanceId':Instance_Id,'Region':region,'EventCode':Event_Code, 'EventDescription':Event_Description,\
-                         'EventTime':Event_Time,'App':app,'Owner':Owner,'email':email,'Account':account})
+                         'EventTime':Event_Time,'App':app,'Owner':Owner,'Email':email,'Account':account})
 
 def process_tags(ec2,Instance_Id):
     tags = ec2.Instance(Instance_Id).tags
@@ -53,17 +53,21 @@ def check_events(aws,region):
 
     for InstanceStatus in InstanceStatuses:
         Instance_Id = InstanceStatus['InstanceId']
-        TAGS = process_tags(ec2,Instance_Id)
-        Events = InstanceStatus['Events']
-        for Event in Events:
-            Event_Code = Event['Code']
-            Event_Description = Event['Description']
-            Event_Time = Event['NotBefore'].strftime('%Y-%m-%d %H:%M UTC')
-            #Event_Time = Event['NotBefore']
-            print ("Instance {0} is Scheduled to {1}".format(Instance_Id,Event_Code))
-            print ("Reason: {0}".format(Event_Description))
-            print ("Scheduled Time: {0}".format(Event_Time))
-            addtoddb(Instance_Id,account,Event_Code,Event_Description,Event_Time,TAGS['app'],TAGS['Owner'],TAGS['email'])
+        if table.query(KeyConditionExpression=Key('InstanceId').eq(Instance_Id))['Count'] != 0:
+            print("Instance entry already in the table")
+        else:
+            TAGS = process_tags(ec2,Instance_Id)
+            Events = InstanceStatus['Events']
+            for Event in Events:
+                Event_Code = Event['Code']
+                Event_Description = Event['Description']
+                Event_Time = Event['NotBefore'].strftime('%Y-%m-%d')
+                #Event_Time = Event['NotBefore'].strftime('%Y-%m-%d %H:%M UTC')
+                #Event_Time = Event['NotBefore']
+                print ("Instance {0} is Scheduled to {1}".format(Instance_Id,Event_Code))
+                print ("Reason: {0}".format(Event_Description))
+                print ("Scheduled Time: {0}".format(Event_Time))
+                addtoddb(Instance_Id,account,Event_Code,Event_Description,Event_Time,TAGS['app'],TAGS['Owner'],TAGS['email'])
 
 if __name__ == '__main__':
     for account in 'prod','dev','legacy':

@@ -8,6 +8,7 @@
     <orderEntry type="module" module-name="scratch" />
     <orderEntry type="module" module-name="scratch" />
     <orderEntry type="module" module-name="stash" />
+    <orderEntry type="module" module-name="python" />
   </component>
   <component name="TestRunnerService">
     <option name="PROJECT_TEST_RUNNER" value="Unittests" />
