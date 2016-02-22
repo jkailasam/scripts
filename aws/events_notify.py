@@ -1,4 +1,7 @@
+#!/apps/python/bin/python
+
 __author__ = 'Jeeva Kailasam'
+
 from datetime import datetime
 from datetime import date
 import boto3
@@ -17,24 +20,25 @@ dynamodb=boto3.resource('dynamodb','us-west-2')
 ddbclient = boto3.client('dynamodb','us-west-2')
 table = dynamodb.Table(table_name)
 current_events = table.scan()['Items']
+filters = [{'Values': ['instance-stop', 'instance-reboot', 'system-reboot', 'system-maintenance', 'instance-retirement'], 'Name': 'event.code'}]
+
 
 dev_credentials = sts.assume_role(RoleArn='arn:aws:iam::020769165682:role/event-notify',
                                   RoleSessionName="AssumeRoleSession1")['Credentials']
 
-dev = Session(aws_access_key_id = dev_credentials['AccessKeyId'],
+dev_session = Session(aws_access_key_id = dev_credentials['AccessKeyId'],
               aws_secret_access_key = dev_credentials['SecretAccessKey'],
-              aws_session_token = dev_credentials['SessionToken'],
-              region_name=region)
+              aws_session_token = dev_credentials['SessionToken'])
 
+legacy_credentials = sts.assume_role(RoleArn='arn:aws:iam::020661041473:role/event_notify',
+                                  RoleSessionName="AssumeRoleSession1")['Credentials']
 
+legacy_session = Session(aws_access_key_id = legacy_credentials['AccessKeyId'],
+              aws_secret_access_key = legacy_credentials['SecretAccessKey'],
+              aws_session_token = legacy_credentials['SessionToken'])
 
-legacy = Session(profile_name='legacy')
-dev = Session(profile_name='dev')
-#prod = Session(profile_name='prod')
-prod = Session()
+prod_session = Session()
 
-
-filters = [{'Values': ['instance-stop', 'instance-reboot', 'system-reboot', 'system-maintenance', 'instance-retirement'], 'Name': 'event.code'}]
 
 def find_existing_events():
     events = {}
@@ -54,17 +58,22 @@ def cleanup_dynamodb():
     print('Done..\n')
 
 def sendEmail(message):
-    mailfrom = 'jeeva@netflix.com'
+    print('***sending email now***')
+    mailfrom = 'itcloudeng@netflix.com'
     mailto = 'jkailasam@netflix.com'
     smtpserver = smtplib.SMTP('mailrelay.itp.netflix.net')
     smtpserver.sendmail(mailfrom,mailto, message)
     smtpserver.quit()
+    print('***email sent Sucessfully***')
+    return
 
 
-def addtoddb(Instance_Id,account,Event_Code,Event_Description,Event_Time,app,Owner,email):
+def addtoddb(Instance_Id,account,region,Event_Code,Event_Description,Event_Time,app,Owner,email):
     table_item = {'InstanceId':Instance_Id,'Region':region,'EventCode':Event_Code, 'EventDescription':Event_Description,\
                          'EventTime':Event_Time,'App':app,'Owner':Owner,'Email':email,'Account':account}
+    print table_item
     table.put_item(Item = table_item)
+    print('table item added')
     return table_item
 
 def process_tags(ec2,Instance_Id):
@@ -86,9 +95,7 @@ def process_tags(ec2,Instance_Id):
     return {'app':app, 'email':email, 'Owner':Owner}
 
 
-def check_events(aws,region):
-    #ec2 = boto3.resource('ec2',region)
-    #ec2client=boto3.client('ec2',region)
+def check_events(aws,region,account):
     ec2 = aws.resource('ec2',region)
     ec2client = aws.client('ec2',region)
     InstanceStatuses = ec2client.describe_instance_status(Filters=filters)['InstanceStatuses']
@@ -107,7 +114,7 @@ def check_events(aws,region):
                 print("This event is already recorded... Skipping.... \n".format(Instance_Id))
             else:
                 print('Record not found.. adding')
-                table_item  = addtoddb(Instance_Id,account,Event_Code,Event_Description,Event_Time,TAGS['app'],TAGS['Owner'],TAGS['email'])
+                table_item  = addtoddb(Instance_Id,account,region,Event_Code,Event_Description,Event_Time,TAGS['app'],TAGS['Owner'],TAGS['email'])
                 #pprint.pprint(table_item, width = 1)
                 #print(json.dumps(table_item, sort_keys=True, indent=5, separators=(',', ':')))
                 #print('Subject: EC2 Instance Maintenace \n\n{}'.format(json.dumps(table_item, sort_keys=True, indent=5, separators=(',', ':'))))
@@ -115,12 +122,16 @@ def check_events(aws,region):
                 print('\n')
 
 
+# Main Function
 if __name__ == '__main__':
     cleanup_dynamodb()
     for account in accounts:
-        aws = Session(profile_name=account)
+        if account == 'dev':
+            aws = dev_session
+        elif account == 'prod':
+            aws = prod_session
+        elif account == 'legacy':
+            aws = legacy_session
         for region in regions:
-            check_events(aws,region)
-
-
-### work on it further###
+            check_events(aws,region,account)
+    print('****Job comepleted Successfully****')
