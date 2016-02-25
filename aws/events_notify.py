@@ -15,8 +15,13 @@ regions = ['us-west-1', 'us-west-2', 'us-east-1']
 accounts = ['prod','dev','legacy']
 table_name = 'Event-Notify'
 
+mailfrom = 'itcloudeng@netflix.com'
+mailto = ['jkailasam@netflix.com']
+smtphost = 'mailrelay.itp.netflix.net'
+
+## boto variables
 sts = boto3.client('sts')
-dynamodb=boto3.resource('dynamodb','us-west-2')
+dynamodb = boto3.resource('dynamodb','us-west-2')
 ddbclient = boto3.client('dynamodb','us-west-2')
 table = dynamodb.Table(table_name)
 current_events = table.scan()['Items']
@@ -59,9 +64,7 @@ def cleanup_dynamodb():
 
 def sendEmail(message):
     print('***sending email now***')
-    mailfrom = 'itcloudeng@netflix.com'
-    mailto = 'jkailasam@netflix.com'
-    smtpserver = smtplib.SMTP('mailrelay.itp.netflix.net')
+    smtpserver = smtplib.SMTP(smtphost)
     smtpserver.sendmail(mailfrom,mailto, message)
     smtpserver.quit()
     print('***email sent Sucessfully***')
