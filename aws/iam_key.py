@@ -17,6 +17,7 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+## MAIN FUNCTION
 for user in users:
     for key in user.access_keys.all():
         username = user.user_name
@@ -29,8 +30,3 @@ for user in users:
                 print("User: {:<35}  Key: {}     Last_Used: {}".format(username,accessid,date))
             else:
                 print(bcolors.FAIL + "User: {:<35}  Key: {}     Key_Active_but_Never_Used".format(username,accessid) + bcolors.ENDC)
-
-
-
-
-
