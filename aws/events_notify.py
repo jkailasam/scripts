@@ -3,11 +3,9 @@
 __author__ = 'Jeeva Kailasam'
 
 from datetime import datetime
-from datetime import date
 import boto3
 from boto3.session import Session
 from boto3.dynamodb.conditions import Key, Attr
-import sys
 import json
 import smtplib
 
