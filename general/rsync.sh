@@ -12,3 +12,5 @@ nohup rsync -avh --exclude='no-sync' --exclude='.snapshot' --numeric-ids $i /nfs
         [[ $COUNT -le 20 ]] && break
         done
 done
+
+### end of script to test the pull request ###
