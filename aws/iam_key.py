@@ -1,4 +1,4 @@
- import boto3
+import boto3
 from boto3.session import Session
 aws = Session(profile_name='dev')
 iam = aws.resource('iam')
@@ -35,3 +35,5 @@ for user in users:
                 print("User: {:<35}  Key: {}     Last_Used: {}".format(username,accessid,date))
             else:
                 print(bcolors.FAIL + "User: {:<35}  Key: {}     Key_Active_but_Never_Used".format(username,accessid) + bcolors.ENDC)
+        else:
+            print(bcolors.WARYELLO + "User: {:<35}  Key: {}     Key Not Active".format(username,accessid))
