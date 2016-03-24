@@ -1,7 +1,12 @@
-import boto3
+ import boto3
+from boto3.session import Session
+aws = Session(profile_name='dev')
+iam = aws.resource('iam')
+iamc = aws.client('iam')
 
-iam = boto3.resource('iam')
-iamc = boto3.client('iam')
+
+#iam = boto3.resource('iam')
+#iamc = boto3.client('iam')
 
 string = 'LastUsedDate'
 users = iam.users.all()
