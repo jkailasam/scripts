@@ -18,10 +18,10 @@ ddbclient = boto3.client('dynamodb','us-west-2')
 table = dynamodb.Table(table_name)
 current_events = table.scan()['Items']
 
-dev_credentials = sts.assume_role(RoleArn='arn:aws:iam::020769165682:role/event-notify',
+'''dev_credentials = sts.assume_role(RoleArn='arn:aws:iam::020769165682:role/event-notify',
                                   RoleSessionName="AssumeRoleSession1")['Credentials']
 
-dev = Session(aws_access_key_id = dev_credentials['AccessKeyId'],
+#dev = Session(aws_access_key_id = dev_credentials['AccessKeyId'],
               aws_secret_access_key = dev_credentials['SecretAccessKey'],
               aws_session_token = dev_credentials['SessionToken'],
               region_name=region)
@@ -32,7 +32,7 @@ legacy = Session(profile_name='legacy')
 dev = Session(profile_name='dev')
 #prod = Session(profile_name='prod')
 prod = Session()
-
+'''
 
 filters = [{'Values': ['instance-stop', 'instance-reboot', 'system-reboot', 'system-maintenance', 'instance-retirement'], 'Name': 'event.code'}]
 
