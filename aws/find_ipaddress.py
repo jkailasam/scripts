@@ -6,8 +6,8 @@ import datetime
 
 app = Flask(__name__)
 regions = ['us-west-2','us-west-1','us-east-1']
-addr = '10.201.96.50'
-addr = '54.191.126.200'
+#addr = '10.201.96.50'
+#addr = '54.191.126.200'
 file = '/tmp/vpc'
 
 def account_region(file,addr):
@@ -32,14 +32,17 @@ def eip_details(addr):
     for region in regions:
         ec2c = boto3.client('ec2', region)
         eip = ec2c.describe_addresses(Filters = filter)['Addresses']
-        if eip != None:
+        #print('eip is: {}'.format(eip))
+        if len(eip)>=1:
+            eip.append({'region':region})
             return json.dumps(eip)
             break
     if not eip:
-        return jsone.dumps('[]')
+        return '[]'
+        #return json.dumps('[]')
         #return json.dumps(eip)
 
-def find_info():
+def find_info(addr):
     if addr.startswith('10.200.') or addr.startswith('10.201.') or addr.startswith('100.127.'):
         account_info = account_region(file,addr)
         profile = account_info[0]
@@ -51,8 +54,13 @@ def find_info():
         return eip
 
 
-output = find_info()
-if len(output) > 2:
-    print(output)
-else:
-    print('IP Address not found')
+@app.route('/ip/<addr>')
+def find_details(addr):
+    output = find_info(addr)
+    if len(output) > 2:
+        return output
+    else:
+        return 'IP Address not found'
+
+if __name__ == '__main__':
+    app.run(debug=True)
