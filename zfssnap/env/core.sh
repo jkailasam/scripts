@@ -1,6 +1,6 @@
 #!/bin/bash
 #All the environment variables are functions are defined here
-readonly VERSION='2.0.0.beta2'
+readonly VERSION='1.0.0.beta1'
 ZFS='/sbin/zfs'
 ZPOOL='/sbin/zpool'
 
@@ -21,4 +21,20 @@ Info() {
 
 Warn() {
     printf '%s\n' "WARNING: $*" >&2
+}
+
+ValidTTL() {
+    TTL=$1
+    #Find the last character
+    TTL_TYPE=$(echo -n $TTL | tail -c 1)
+    #get all characters but last and remove all the leading 0 if any
+    TTL_VALUE=$(echo -n $TTL | head -c -1|sed 's/^0*//')
+
+    TTL_VALUE=$(echo -n $TTL | sed '$s/\(.\{1\}\)$//'| sed 's/^0*//')
+    if ! [[ $TTL_TYPE = m || $TTL_TYPE = h || $TTL_TYPE = d || $TTL_TYPE = w || $TTL_TYPE = M || $TTL_TYPE = y ]] ; then
+        return 10
+    fi
+
+    if TTL_VALUE
+
 }
