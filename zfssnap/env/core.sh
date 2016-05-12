@@ -3,7 +3,7 @@
 readonly VERSION='1.0.0.beta1'
 ZFS='/sbin/zfs'
 ZPOOL='/sbin/zpool'
-
+TIME_FORMAT='%Y-%m-%d_%H.%M.%S'
 
 ## HELPER FUNCTIONS
 Err() {
@@ -23,27 +23,12 @@ Warn() {
     printf '%s\n' "WARNING: $*" >&2
 }
 
-# Returns 0 if argument is "false"
-IsFalse() {
-    IsTrue "$1" && return 1 || return 0
-}
-# Returns 0 if argument is "true"
-IsTrue() {
-    case "$1" in
-        true)  return 0 ;;
-        false) return 1 ;;
-        *)     Fatal "'$1' must be true or false." ;;
-    esac
-}
 
 ## Check TTL if it is valid
 ValidTTL() {
     TTL=$1
-    #Find the last character
-    TTL_TYPE=$(echo -n $TTL | tail -c 1)
-    #get all characters but last and remove all the leading 0 if any
-    #TTL_VALUE=$(echo -n $TTL | head -c -1|sed 's/^0*//')
-    TTL_VALUE=$(echo -n $TTL | sed -e '$s/\(.\{1\}\)$//' -e 's/^0*//')
+    TTL_TYPE=$(echo -n $TTL | tail -c 1) ## get the last character
+    TTL_VALUE=$(echo -n $TTL | sed -e '$s/\(.\{1\}\)$//' -e 's/^0*//')  ## get all but last and remove leading 0
     if ! [[ $TTL_TYPE = m || $TTL_TYPE = h || $TTL_TYPE = d || $TTL_TYPE = w || $TTL_TYPE = M || $TTL_TYPE = y ]] ; then
         return 10
     fi
@@ -52,7 +37,6 @@ ValidTTL() {
     if ! [[ $TTL_VALUE =~ $re ]]; then
         return 10
     fi
-
 }
 
 # Returns 0 if filesystem exists

@@ -61,8 +61,11 @@ while [ "$1" ]; do
     if [ "$1" ]; then
         FSExists "$1" || Fatal "'$1' does not exist!"
         CURRENT_DATE=${CURRENT_DATE:-`date "+$TIME_FORMAT"`}
-        ZFS_SNAPSHOT="$ZFS_CMD snapshot $ZOPT ${1}@${PREFIX}${CURRENT_DATE}--${TTL}"
-        if IsFalse "$DRY_RUN"; then
+        TTL_TYPE=$(echo -n $TTL | tail -c 1)
+        TTL_VALUE=$(echo -n $TTL | sed -e '$s/\(.\{1\}\)$//' -e 's/^0*//')
+        Final_TTL=${TTL_VALUE}${TTL_TYPE}
+        ZFS_SNAPSHOT="$ZFS snapshot $ZOPT ${1}@${PREFIX}${CURRENT_DATE}--${Final_TTL}"
+        if ! [[ $DRY_RUN = true ]]; then
             if $ZFS_SNAPSHOT >&2; then
                 printf '%s ... DONE\n' "$ZFS_SNAPSHOT"
             else
