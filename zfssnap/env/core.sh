@@ -28,13 +28,15 @@ ValidTTL() {
     #Find the last character
     TTL_TYPE=$(echo -n $TTL | tail -c 1)
     #get all characters but last and remove all the leading 0 if any
-    TTL_VALUE=$(echo -n $TTL | head -c -1|sed 's/^0*//')
-
-    TTL_VALUE=$(echo -n $TTL | sed '$s/\(.\{1\}\)$//'| sed 's/^0*//')
+    #TTL_VALUE=$(echo -n $TTL | head -c -1|sed 's/^0*//')
+    TTL_VALUE=$(echo -n $TTL | sed -e '$s/\(.\{1\}\)$//' -e 's/^0*//')
     if ! [[ $TTL_TYPE = m || $TTL_TYPE = h || $TTL_TYPE = d || $TTL_TYPE = w || $TTL_TYPE = M || $TTL_TYPE = y ]] ; then
         return 10
     fi
-
-    if TTL_VALUE
+    # confirm TTL_VALUE is an integer
+    re='^[0-9]+$'
+    if ! [[ $TTL_VALUE =~ $re ]]; then
+        return 10
+    fi
 
 }
