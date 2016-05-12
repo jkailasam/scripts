@@ -23,6 +23,20 @@ Warn() {
     printf '%s\n' "WARNING: $*" >&2
 }
 
+# Returns 0 if argument is "false"
+IsFalse() {
+    IsTrue "$1" && return 1 || return 0
+}
+# Returns 0 if argument is "true"
+IsTrue() {
+    case "$1" in
+        true)  return 0 ;;
+        false) return 1 ;;
+        *)     Fatal "'$1' must be true or false." ;;
+    esac
+}
+
+## Check TTL if it is valid
 ValidTTL() {
     TTL=$1
     #Find the last character
@@ -39,4 +53,15 @@ ValidTTL() {
         return 10
     fi
 
+}
+
+# Returns 0 if filesystem exists
+FSExists() {
+    FS_LIST=${FS_LIST:-`$ZFS list -H -o name`}
+
+    #local i
+    for i in $FS_LIST; do
+        [ "$1" = "$i" ] && return 0
+    done
+    return 1
 }

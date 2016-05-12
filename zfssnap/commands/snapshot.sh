@@ -23,8 +23,6 @@ OPTIONS:
                  follow this option
   -R           = Create non-recursive snapshots for all ZFS file systems that
                  follow this option
-  -s           = Skip pools that are resilvering
-  -S           = Skip pools that are scrubbing
   -v           = Verbose output
   -z           = Round snapshot creation time down to 00 seconds
 
@@ -39,7 +37,7 @@ fi
 # main loop; get options, process snapshot creation
 while [ "$1" ]; do
     OPTIND=1
-    while getopts :a:hnp:PrRsSvz OPT; do
+    while getopts :a:hnp:PrRz OPT; do
         case "$OPT" in
             a) ValidTTL "$OPTARG" || Fatal "Invalid TTL: $OPTARG"
                TTL=$OPTARG
@@ -50,11 +48,7 @@ while [ "$1" ]; do
             P) PREFIX='';;
             r) ZOPT='-r';;
             R) ZOPT='';;
-            s) PopulateSkipPools 'resilver';;
-            S) PopulateSkipPools 'scrub';;
-            v) VERBOSE='true';;
             z) TIME_FORMAT='%Y-%m-%d_%H.%M.00';;
-
             :) Fatal "Option -${OPTARG} requires an argument.";;
            \?) Fatal "Invalid option: -${OPTARG}.";;
         esac
@@ -66,16 +60,13 @@ while [ "$1" ]; do
     # create snapshots
     if [ "$1" ]; then
         FSExists "$1" || Fatal "'$1' does not exist!"
-        ! SkipPool "$1" && shift && continue
-
         CURRENT_DATE=${CURRENT_DATE:-`date "+$TIME_FORMAT"`}
-
         ZFS_SNAPSHOT="$ZFS_CMD snapshot $ZOPT ${1}@${PREFIX}${CURRENT_DATE}--${TTL}"
         if IsFalse "$DRY_RUN"; then
             if $ZFS_SNAPSHOT >&2; then
-                IsTrue $VERBOSE && printf '%s ... DONE\n' "$ZFS_SNAPSHOT"
+                printf '%s ... DONE\n' "$ZFS_SNAPSHOT"
             else
-                IsTrue $VERBOSE && printf '%s ... FAIL\n' "$ZFS_SNAPSHOT"
+                printf '%s ... FAIL\n' "$ZFS_SNAPSHOT"
             fi
         else
             printf '%s\n' "$ZFS_SNAPSHOT"
