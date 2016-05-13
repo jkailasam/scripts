@@ -40,25 +40,53 @@ ValidTTL() {
     fi
 }
 
-# Returns 0 if filesystem exists
-#FSExists() {
-#    FS_LIST=${FS_LIST:-`$ZFS list -H -o name`}#
+## Returns 0 if filesystem exists
+FSExists() {
+    FS_LIST=${FS_LIST:-`$ZFS list -H -o name`}
+    #local i
+    for i in $FS_LIST; do
+        [ "$1" = "$i" ] && return 0
+    done
+    return 1
+}
 
-#    #local i
-#    for i in $FS_LIST; do
-#        [ "$1" = "$i" ] && return 0
-#    done
-#    return 1
-#}
+IsSnapshot() {
+    case "$1" in
+        [!@]*@*[!@]) return 0;;
+        *) return 1;;
+    esac
+}
 
-TrimToPrefix() {
-    local snapshot_name="$1"
-    # make sure it contains a date
-    [ -z "${SnapShotName##*$DATE_PATTERN*}" ] || { RETVAL=''; return 1; }
-    local snapshot_prefix="${snapshot_name%$DATE_PATTERN*}"
-    if ValidPrefix "$snapshot_prefix"; then
-        RETVAL=$snapshot_prefix && return 0
+RM_SNAPSHOTS(){
+    if IsSnapshot "$1"; then
+        local zfs_destroy="$ZFS destroy $*"
+
+        if ! [[ $DRY_RUN = true ]]; then
+            if $zfs_destroy >&2; then
+                printf '%s ... DONE\n' "$zfs_destroy"
+            else
+                printf '%s ... FAIL\n' "$zfs_destroy"
+            fi
+        else
+            printf '%s\n' "$zfs_destroy"
+        fi
     else
-        RETVAL='' && return 1
+        Fatal 'Trying to delete ZFS pool or filesystem? WTF?' \
+              'This is bug, and we definitely do not want that.' \
+              'Please report it to https://github.com/zfsnap/zfsnap/issues' \
+              'Do not panic, as nothing was deleted. :-)'
     fi
 }
+
+
+# TrimToPrefix() {
+#     local snapshot_name="$1"
+#     # make sure it contains a date
+#     [ -z "${SnapShotName##*$DATE_PATTERN*}" ] || { RETVAL=''; return 1; }
+#     local snapshot_prefix="${snapshot_name%$DATE_PATTERN*}"
+#     if ValidPrefix "$snapshot_prefix"; then
+#         RETVAL=$snapshot_prefix && return 0
+#     else
+#         RETVAL='' && return 1
+#     fi
+# }

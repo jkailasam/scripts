@@ -67,23 +67,44 @@ if [ -n "$1" ]; then
     FileSystem=$1
     ZFS_SNAPSHOTS=$($ZFS list -H -o name -s name -t snapshot -r $1) >&2 || Fatal "'$1' does not exist!"
     for SNAPSHOT in $ZFS_SNAPSHOTS; do
+        Info "Now processing $SNAPSHOT"
         FileSystem=${SNAPSHOT%%@*}
         SnapShotName=${SNAPSHOT##*@}
         TTL=${SnapShotName##*--}
         TTL_TYPE=$(echo -n $TTL | tail -c 1)
         TTL_VALUE=$(echo -n $TTL | sed -e '$s/\(.\{1\}\)$//' -e 's/^0*//')
 
-        case TTL_TYPE in
+        case $TTL_TYPE in
             m) SecToKeep=$(expr $TTL_VALUE \* 60);;
             h) SecToKeep=$(expr $TTL_VALUE \* 3600);;
             d) SecToKeep=$(expr $TTL_VALUE \* 86400);;
             w) SecToKeep=$(expr $TTL_VALUE \* 86400 \* 7);;
             M) SecToKeep=$(expr $TTL_VALUE \* 86400 \* 30);;
             y) SecToKeep=$(expr $TTL_VALUE \* 86400 \* 365);;
-            *) Fatal "TTL Invalid";;
+            *) Warn "TTL is not valid; Skipping to next snapshot"
+               continue;;
         esac
 
-        echo "Filesystem:$FileSystem and Snapshot: $SnapShotName Secondstokeep: $SecToKeep"
+        # convert the snapshot time in epoch seconds
+        pre_date="${SnapShotName%$DATE_PATTERN*}"
+        post_date="${SnapShotName##*$DATE_PATTERN}"
+        snapshot_date="${SnapShotName##$pre_date}"
+        snapshot_date=${snapshot_date%%$post_date}
+        # Confirm date in the snapshot name is in the right format
+        if ! [ -z "${snapshot_date##$DATE_PATTERN}" ] ; then
+            Warn "Date is not in the Valid format. Skipping to the next snapshot"
+            continue
+        fi
+        # Find out if the snapshot TTL has expired, delete it if expired
+        date_formated=$(echo $snapshot_date|sed -e s'/_/ /' -e s'/\./:/g')
+        snapshot_creaed_sec=$(date -d "$date_formated" +%s)
+        snap_expire_sec=$(expr $snapshot_creaed_sec + $SecToKeep)
+        cur_date_in_sec=$(date +%s)
+        if [[ $cur_date_in_sec -gt $snap_expire_sec ]] ; then
+            Info "Snapshot Expired.. Deleting it now"
+        else
+            Info "Snapshot not expired yet... Skipping"
+        fi
+        echo -e "\n\n\n"
     done
-
 fi
