@@ -40,37 +40,50 @@ if [[ $# -lt 1 ]] ; then
 fi
 
 # main loop; get options, process snapshot expiration/deletion
-while [ -n "$1" ]; do
-    OPTIND=1
-    while getopts :DF:hnp:PrRz OPT; do
-        case "$OPT" in
-            D) DELETE_ALL_SNAPSHOTS='true';;
-            F) ValidTTL "$OPTARG" || Fatal "Invalid TTL: $OPTARG"
-               [ "$OPTARG" = 'forever' ] && Fatal '-F does not accept the "forever" TTL'
-               FORCE_AGE_TTL=$OPTARG
-               FORCE_DELETE_BY_AGE='true'
-               ;;
-            h) Help;;
-            n) DRY_RUN='true';;
-            p) PREFIX=$OPTARG; PREFIXES="${PREFIXES:+$PREFIXES }$PREFIX";;
-            P) PREFIX=''; PREFIXES='';;
-            r) RECURSIVE='true';;
-            R) RECURSIVE='false';;
-            :) Fatal "Option -${OPTARG} requires an argument.";;
-           \?) Fatal "Invalid option: -${OPTARG}.";;
+OPTIND=1
+while getopts :DF:hnp:PrRz OPT; do
+    case "$OPT" in
+        D) DELETE_ALL_SNAPSHOTS='true';;
+        F) ValidTTL "$OPTARG" || Fatal "Invalid TTL: $OPTARG"
+           [ "$OPTARG" = 'forever' ] && Fatal '-F does not accept the "forever" TTL'
+           FORCE_AGE_TTL=$OPTARG
+           FORCE_DELETE_BY_AGE='true'
+           ;;
+        h) Help;;
+        n) DRY_RUN='true';;
+        p) PREFIX=$OPTARG; PREFIXES="${PREFIXES:+$PREFIXES }$PREFIX";;
+        P) PREFIX=''; PREFIXES='';;
+        r) RECURSIVE='true';;
+        R) RECURSIVE='false';;
+        :) Fatal "Option -${OPTARG} requires an argument.";;
+       \?) Fatal "Invalid option: -${OPTARG}.";;
+    esac
+done
+
+# discard all arguments processed thus far
+shift $(($OPTIND - 1))
+
+if [ -n "$1" ]; then
+    FileSystem=$1
+    ZFS_SNAPSHOTS=$($ZFS list -H -o name -s name -t snapshot -r $1) >&2 || Fatal "'$1' does not exist!"
+    for SNAPSHOT in $ZFS_SNAPSHOTS; do
+        FileSystem=${SNAPSHOT%%@*}
+        SnapShotName=${SNAPSHOT##*@}
+        TTL=${SnapShotName##*--}
+        TTL_TYPE=$(echo -n $TTL | tail -c 1)
+        TTL_VALUE=$(echo -n $TTL | sed -e '$s/\(.\{1\}\)$//' -e 's/^0*//')
+
+        case TTL_TYPE in
+            m) SecToKeep=$(expr $TTL_VALUE \* 60);;
+            h) SecToKeep=$(expr $TTL_VALUE \* 3600);;
+            d) SecToKeep=$(expr $TTL_VALUE \* 86400);;
+            w) SecToKeep=$(expr $TTL_VALUE \* 86400 \* 7);;
+            M) SecToKeep=$(expr $TTL_VALUE \* 86400 \* 30);;
+            y) SecToKeep=$(expr $TTL_VALUE \* 86400 \* 365);;
+            *) Fatal "TTL Invalid";;
         esac
+
+        echo "Filesystem:$FileSystem and Snapshot: $SnapShotName Secondstokeep: $SecToKeep"
     done
 
-    # discard all arguments processed thus far
-    shift $(($OPTIND - 1))
-
-    if [ -n "$1" ]; then
-        ZFS_SNAPSHOTS=`$ZFS list -H -o name -s name -t snapshot -r $1` >&2 || Fatal "'$1' does not exist!"
-        echo ZFS_SNAPSHOTS
-    fi
-
-
-
-
-
-done
+fi

@@ -4,6 +4,7 @@ readonly VERSION='1.0.0.beta1'
 ZFS='/sbin/zfs'
 ZPOOL='/sbin/zpool'
 TIME_FORMAT='%Y-%m-%d_%H.%M.%S'
+readonly DATE_PATTERN='[2][0][0-9][0-9]-[01][0-9]-[0-3][0-9]_[0-2][0-9].[0-5][0-9].[0-5][0-9]'
 
 ## HELPER FUNCTIONS
 Err() {
@@ -40,12 +41,24 @@ ValidTTL() {
 }
 
 # Returns 0 if filesystem exists
-FSExists() {
-    FS_LIST=${FS_LIST:-`$ZFS list -H -o name`}
+#FSExists() {
+#    FS_LIST=${FS_LIST:-`$ZFS list -H -o name`}#
 
-    #local i
-    for i in $FS_LIST; do
-        [ "$1" = "$i" ] && return 0
-    done
-    return 1
+#    #local i
+#    for i in $FS_LIST; do
+#        [ "$1" = "$i" ] && return 0
+#    done
+#    return 1
+#}
+
+TrimToPrefix() {
+    local snapshot_name="$1"
+    # make sure it contains a date
+    [ -z "${SnapShotName##*$DATE_PATTERN*}" ] || { RETVAL=''; return 1; }
+    local snapshot_prefix="${snapshot_name%$DATE_PATTERN*}"
+    if ValidPrefix "$snapshot_prefix"; then
+        RETVAL=$snapshot_prefix && return 0
+    else
+        RETVAL='' && return 1
+    fi
 }
