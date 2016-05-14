@@ -62,7 +62,7 @@ RM_SNAPSHOTS(){
         local zfs_destroy="$ZFS destroy $*"
 
         if ! [[ $DRY_RUN = true ]]; then
-            if $zfs_destroy >&2; then
+            if echo $zfs_destroy >&2; then
                 printf '%s ... DONE\n' "$zfs_destroy"
             else
                 printf '%s ... FAIL\n' "$zfs_destroy"
