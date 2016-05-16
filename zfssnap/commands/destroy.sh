@@ -23,9 +23,6 @@ OPTIONS:
                  follow this option
   -h           = Print this help and exit
   -n           = Dry-run. Perform a trial run with no actions actually performed
-  -p prefix    = Enable filtering to only consider snapshots with "prefix";
-                 it can be specified multiple times to build a list.
-  -P           = Disable filtering for prefixes.
   -r           = Operate recursively on all ZFS file systems after this option
   -R           = Do not operate recursively on all ZFS file systems after this option
   -v           = Verbose output
@@ -51,8 +48,6 @@ while getopts :DF:hnp:PrRz OPT; do
            ;;
         h) Help;;
         n) DRY_RUN='true';;
-        p) PREFIX=$OPTARG; PREFIXES="${PREFIXES:+$PREFIXES }$PREFIX";;
-        P) PREFIX=''; PREFIXES='';;
         r) RECURSIVE='true';;
         R) RECURSIVE='false';;
         :) Fatal "Option -${OPTARG} requires an argument.";;
@@ -95,6 +90,7 @@ if [ -n "$1" ]; then
             Warn "Date is not in the Valid format. Skipping to the next snapshot"
             continue
         fi
+
         # Find out if the snapshot TTL has expired, delete it if expired
         date_formated=$(echo $snapshot_date|sed -e s'/_/ /' -e s'/\./:/g')
         snapshot_creaed_sec=$(date -d "$date_formated" +%s)
@@ -102,9 +98,10 @@ if [ -n "$1" ]; then
         cur_date_in_sec=$(date +%s)
         if [[ $cur_date_in_sec -gt $snap_expire_sec ]] ; then
             Info "Snapshot Expired.. Deleting it now"
+            RM_SNAPSHOTS $SNAPSHOT
         else
             Info "Snapshot not expired yet... Skipping"
         fi
-        echo -e "\n\n\n"
+        echo -e "\n"
     done
 fi

@@ -57,12 +57,24 @@ IsSnapshot() {
     esac
 }
 
+TrimToFileSystem() {
+    local snapshot="$1"
+    local file_system="${snapshot%%@*}"
+
+    if FSExists "$file_system"; then
+        RETVAL=$file_system && return 0
+    else
+        RETVAL='' && return 1
+    fi
+}
+
+
 RM_SNAPSHOTS(){
     if IsSnapshot "$1"; then
         local zfs_destroy="$ZFS destroy $*"
 
         if ! [[ $DRY_RUN = true ]]; then
-            if echo $zfs_destroy >&2; then
+            if $zfs_destroy >&2; then
                 printf '%s ... DONE\n' "$zfs_destroy"
             else
                 printf '%s ... FAIL\n' "$zfs_destroy"
@@ -77,16 +89,3 @@ RM_SNAPSHOTS(){
               'Do not panic, as nothing was deleted. :-)'
     fi
 }
-
-
-# TrimToPrefix() {
-#     local snapshot_name="$1"
-#     # make sure it contains a date
-#     [ -z "${SnapShotName##*$DATE_PATTERN*}" ] || { RETVAL=''; return 1; }
-#     local snapshot_prefix="${snapshot_name%$DATE_PATTERN*}"
-#     if ValidPrefix "$snapshot_prefix"; then
-#         RETVAL=$snapshot_prefix && return 0
-#     else
-#         RETVAL='' && return 1
-#     fi
-# }
