@@ -1,6 +1,6 @@
 #!/bin/bash
 #All the environment variables are functions are defined here
-readonly VERSION='1.0.0.beta1'
+readonly VERSION='0.1.0'
 ZFS='/sbin/zfs'
 ZPOOL='/sbin/zpool'
 TIME_FORMAT='%Y-%m-%d_%H.%M.%S'
@@ -8,20 +8,20 @@ readonly DATE_PATTERN='[2][0][0-9][0-9]-[01][0-9]-[0-3][0-9]_[0-2][0-9].[0-5][0-
 
 ## HELPER FUNCTIONS
 Err() {
-    printf '%s\n' "ERROR: $*" >&2
+    printf '%s\n' "$(date +'%b %d  %X') ERROR:  $*" >&2
 }
 
 Fatal() {
-    printf '%s\n' "FATAL: $*" >&2
+    printf '%s\n' "$(date +'%b %d  %X') FATAL:  $*" >&2
     exit 1
 }
 
 Info() {
-    printf '%s\n' "INFO: $*" >&2
+    printf '%s\n' "$(date +'%b %d  %X') INFO:  $*" >&2
 }
 
 Warn() {
-    printf '%s\n' "WARNING: $*" >&2
+    printf '%s\n' "$(date +'%b %d  %X') WARNING: $*" >&2
 }
 
 
@@ -75,12 +75,15 @@ RM_SNAPSHOTS(){
 
         if ! [[ $DRY_RUN = true ]]; then
             if $zfs_destroy >&2; then
-                printf '%s ... DONE\n' "$zfs_destroy"
+                echo "$(date +'%b %d  %X') $zfs_destroy .... DONE"
+                #printf '%s ... DONE\n' "$zfs_destroy"
             else
-                printf '%s ... FAIL\n' "$zfs_destroy"
+                echo "$(date +'%b %d  %X') $zfs_destroy .... FAIL"
+                #printf '%s ... FAIL\n' "$zfs_destroy"
             fi
         else
-            printf '%s\n' "$zfs_destroy"
+            #printf '%s\n' "$zfs_destroy"
+            echo "$(date +'%b %d  %X') $zfs_destroy"
         fi
     else
         Fatal 'Trying to delete ZFS pool or filesystem? WTF?' \

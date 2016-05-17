@@ -1,11 +1,12 @@
 #!/bin/bash
 
 DELETE_ALL_SNAPSHOTS='false'        # Should all snapshots be deleted, regardless of TTL
-RM_SNAPSHOTS=''                     # List of specific snapshots to delete
-FORCE_DELETE_BY_AGE='false'         # Ignore TTL expiration and delete if older than "AGE" (in TTL format).
-FORCE_AGE_TTL=''                    # Used to store "age" TTL if FORCE_DELETE_BY_AGE is set.
 RECURSIVE='false'
-PREFIXES=''                         # List of prefixes
+#FORCE_DELETE_BY_AGE='false'         # Ignore TTL expiration and delete if older than "AGE" (in TTL format).
+#FORCE_AGE_TTL=''                    # Used to store "age" TTL if FORCE_DELETE_BY_AGE is set.
+#PREFIXES=''                         # List of prefixes
+#RM_SNAPSHOTS=''                     # List of specific snapshots to delete
+
 
 # FUNCTIONS
 Help() {
@@ -38,14 +39,14 @@ Main_function(){
     TTL_VALUE=$(echo -n $TTL | sed -e '$s/\(.\{1\}\)$//' -e 's/^0*//')
 
     case $TTL_TYPE in
-        m) SecToKeep=$(expr $TTL_VALUE \* 60);;
+        M) SecToKeep=$(expr $TTL_VALUE \* 60);;
         h) SecToKeep=$(expr $TTL_VALUE \* 3600);;
         d) SecToKeep=$(expr $TTL_VALUE \* 86400);;
         w) SecToKeep=$(expr $TTL_VALUE \* 86400 \* 7);;
-        M) SecToKeep=$(expr $TTL_VALUE \* 86400 \* 30);;
+        m) SecToKeep=$(expr $TTL_VALUE \* 86400 \* 30);;
         y) SecToKeep=$(expr $TTL_VALUE \* 86400 \* 365);;
         *) Warn "TTL is not valid; Skipping to next snapshot"
-	   echo -e "\n"
+	   #echo -e "\n"
            continue;;
     esac
 
@@ -57,7 +58,7 @@ Main_function(){
     # Confirm date in the snapshot name is in the right format
     if ! [ -z "${snapshot_date##$DATE_PATTERN}" ] ; then
         Warn "Date is not in the Valid format. Skipping to the next snapshot"
-	echo -e "\n"
+	#echo -e "\n"
         continue
     fi
 
@@ -72,7 +73,7 @@ Main_function(){
     else
         Info "Snapshot not expired yet... Skipping"
     fi
-    echo -e "\n"
+    #echo -e "\n"
 }
 
 if [[ $# -lt 1 ]] ; then
@@ -104,7 +105,7 @@ if [ -n "$1" ]; then
         if [[ $DELETE_ALL_SNAPSHOTS = true ]]; then
 	    Info "Now processing $SNAPSHOT"
             RM_SNAPSHOTS $SNAPSHOT
-            echo -e "\n"
+            #echo -e "\n"
         elif [[ $RECURSIVE = false ]] ; then
             [[ $(echo $SNAPSHOT | grep ^${FileSystem}@) ]] && Main_function
         else

@@ -69,12 +69,12 @@ while [ "$1" ]; do
         ZFS_SNAPSHOT="$ZFS snapshot $ZOPT ${1}@${PREFIX}${CURRENT_DATE}--${Final_TTL}"
         if [[ $DRY_RUN != true ]]; then
             if $ZFS_SNAPSHOT >&2; then
-                printf '%s ... DONE\n' "$ZFS_SNAPSHOT"
+                echo "$(date +'%b %d  %X') $ZFS_SNAPSHOT .... DONE"
             else
-                printf '%s ... FAIL\n' "$ZFS_SNAPSHOT"
+                echo "$(date +'%b %d  %X') $ZFS_SNAPSHOT .... FAIL"
             fi
         else
-            printf '%s\n' "$ZFS_SNAPSHOT"
+            echo "$(date +'%b %d  %X') $ZFS_SNAPSHOT"
         fi
 
         shift

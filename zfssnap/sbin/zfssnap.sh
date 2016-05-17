@@ -1,7 +1,7 @@
 #!/bin/bash
 
-source ../env/core.sh
-COMMANDS_DIR="../commands"
+source /usr/local/zfssnap/env/core.sh
+COMMANDS_DIR="/usr/local/zfssnap/commands"
 ## define the Help message fuction
 Help(){
     cat << EOF
@@ -23,7 +23,7 @@ MORE HELP:
   Example: ${0##*/} snapshot -h
            ${0##*/} destroy -h
 
-           
+
 EOF
 }
 
