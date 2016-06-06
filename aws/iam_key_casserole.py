@@ -3,13 +3,6 @@ import argparse
 import boto3
 from boto3.session import Session
 
-#secret_key = os.environ['AWS_SECRET_ACCESS_KEY']
-#access_key = os.environ['AWS_ACCESS_KEY_ID']
-#access_token = os.environ['AWS_SESSION_TOKEN']
-
-#iam = boto3.resource('iam')
-#iamc = boto3.client('iam')
-
 
 # Metadata = iamc.list_access_keys(UserName=user.user_name)
 class bcolors:
@@ -22,16 +15,6 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
-
-#parser = argparse.ArgumentParser(description='Lists all the iAM acoounts and Accesskeys')
-#parser.add_argument('--account', default='prod', choices=['prod','dev','legacy'],help='Account Name')
-#args = parser.parse_args()
-#profile = args.account
-
-
-
-#aws = Session(aws_access_key_id=access_key, aws_secret_access_key=secret_key, aws_session_token=access_token)
-#aws = Session(aws_access_key_id=access_key, aws_secret_access_key=secret_key, aws_session_token=access_token)
 
 iam = boto3.resource('iam')
 iamc = boto3.client('iam')
